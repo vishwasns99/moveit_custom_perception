@@ -331,8 +331,8 @@ void CustomOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::Cons
 
   tree_->unlockRead();
 
-  ROS_DEBUG("Processed raycasting in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
-  start = ros::WallTime::now();
+  // ROS_DEBUG("Processed raycasting in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  // start = ros::WallTime::now();
 
   tree_->lockWrite();
   try
