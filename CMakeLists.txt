@@ -4,7 +4,6 @@ project(moveit_custom_perception)
 find_package(Boost REQUIRED thread)
 
 find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
   moveit_core
   roscpp
   rosconsole

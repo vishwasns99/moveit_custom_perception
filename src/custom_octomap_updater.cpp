@@ -174,8 +174,8 @@ void CustomOctomapUpdater::updateMask(const sensor_msgs::PointCloud2& cloud, con
 
 void CustomOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg)
 {
-  ROS_DEBUG("Received a new point cloud message");
-  ros::WallTime start = ros::WallTime::now();
+  // ROS_DEBUG("Received a new point cloud message");
+  // ros::WallTime start = ros::WallTime::now();
 
   if (max_update_rate_ > 0)
   {
@@ -249,8 +249,8 @@ void CustomOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::Cons
   }
   size_t filtered_cloud_size = 0;
 
-  ROS_DEBUG("Pre-Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
-  start = ros::WallTime::now();
+  // ROS_DEBUG("Pre-Processed point cloud in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  // start = ros::WallTime::now();
 
   tree_->lockRead();
 
@@ -280,13 +280,12 @@ void CustomOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::Cons
              isn't on a part of the robot*/
           if (mask_[row_c + col] == point_containment_filter::ShapeMask::INSIDE)
             model_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
-          else if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP)
+          else if (mask_[row_c + col] == point_containment_filter::ShapeMask::CLIP && mark_free_space_)
           {
             tf2::Vector3 clipped_point_tf = map_h_sensor * (tf2::Vector3(pt_iter[0], pt_iter[1], pt_iter[2]).normalize() * max_range_);
             clip_cells.insert(tree_->coordToKey(clipped_point_tf.getX(), clipped_point_tf.getY(), clipped_point_tf.getZ()));
           }
-            // clip_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
-          else
+          else if(mask_[row_c + col] == point_containment_filter::ShapeMask::OUTSIDE)
           {
             occupied_cells.insert(tree_->coordToKey(point_tf.getX(), point_tf.getY(), point_tf.getZ()));
             // build list of valid points if we want to publish them
@@ -375,13 +374,15 @@ void CustomOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::Cons
   tree_->unlockWrite();
   tree_->triggerUpdateCallback();
   
-  ROS_DEBUG("Updated in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
-
   if (filtered_cloud)
   {
     sensor_msgs::PointCloud2Modifier pcd_modifier(*filtered_cloud);
     pcd_modifier.resize(filtered_cloud_size);
     filtered_cloud_publisher_.publish(*filtered_cloud);
   }
+
+  // ROS_DEBUG("Updated in %lf ms", (ros::WallTime::now() - start).toSec() * 1000.0);
+  // ROS_DEBUG("______________________________________________________________________");
+
 }
 }  // namespace occupancy_map_monitor
