@@ -44,6 +44,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <moveit/occupancy_map_monitor/occupancy_map_updater.h>
 #include <moveit/point_containment_filter/shape_mask.h>
+#include "std_srvs/SetBool.h"
 
 #include <memory>
 
@@ -71,6 +72,7 @@ private:
   bool getShapeTransform(ShapeHandle h, Eigen::Isometry3d& transform) const;
   void cloudMsgCallback(const sensor_msgs::PointCloud2::ConstPtr& cloud_msg);
   void stopHelper();
+  bool octomap_update_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &resp);
 
   ros::NodeHandle root_nh_;
   ros::NodeHandle private_nh_;
@@ -90,6 +92,9 @@ private:
   bool mark_free_space_;
   std::string filtered_cloud_topic_;
   ros::Publisher filtered_cloud_publisher_;
+  bool update_octomap_;
+
+  ros::ServiceServer octomap_update_service;
 
   message_filters::Subscriber<sensor_msgs::PointCloud2>* point_cloud_subscriber_;
   tf2_ros::MessageFilter<sensor_msgs::PointCloud2>* point_cloud_filter_;

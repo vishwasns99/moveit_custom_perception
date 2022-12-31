@@ -58,6 +58,7 @@ CustomOctomapUpdater::CustomOctomapUpdater()
   , mark_free_space_(false)
   , point_cloud_subscriber_(nullptr)
   , point_cloud_filter_(nullptr)
+  , update_octomap_(true)
 {
 }
 
@@ -104,7 +105,29 @@ bool CustomOctomapUpdater::initialize()
   shape_mask_->setTransformCallback(boost::bind(&CustomOctomapUpdater::getShapeTransform, this, _1, _2));
   if (!filtered_cloud_topic_.empty())
     filtered_cloud_publisher_ = private_nh_.advertise<sensor_msgs::PointCloud2>(filtered_cloud_topic_, 10, false);
+
+  // Setup octomap update service
+  octomap_update_service = private_nh_.advertiseService("update_octomap",&CustomOctomapUpdater::octomap_update_callback, this);
+
   return true;
+}
+
+bool CustomOctomapUpdater::octomap_update_callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &resp)
+{
+    if(req.data)
+    {
+      // Enable octomap update
+      update_octomap_ = true;
+      ROS_INFO("Octomap Update enabled.");
+    }
+    else
+    {
+      // Disable octomap update
+      update_octomap_ = false;
+      ROS_INFO("Octomap Update disabled.");
+    }
+    resp.success = true;
+    return true;
 }
 
 void CustomOctomapUpdater::start()
@@ -176,6 +199,8 @@ void CustomOctomapUpdater::cloudMsgCallback(const sensor_msgs::PointCloud2::Cons
 {
   // ROS_DEBUG("Received a new point cloud message");
   // ros::WallTime start = ros::WallTime::now();
+
+  if(!update_octomap_) return;
 
   if (max_update_rate_ > 0)
   {
